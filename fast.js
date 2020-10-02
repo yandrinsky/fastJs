@@ -162,6 +162,88 @@ let __fastJsMethods = {
         return new List()
     },
 
+    preloader: function(settings = {}){
+        let title = '',
+            titleColor = 'black',
+            titleSize = '20px',
+            titleFontFamily = 'sans-serif',
+            titleStyle = 'normal',
+            circleMainColor = '#000',
+            circleSecColor = 'lightblue',
+            circleSpeed = '1',
+            circleAnimationType = 'ease',
+            backgroundColor = '#fff',
+            timeToHide = 0.9 //в мс
+
+
+
+        if(settings.title){
+            title = settings.title
+        }
+        if(settings.title_color){
+            titleColor = settings.title_color
+        }
+
+        if(settings.title_size){
+            titleSize = settings.title_size
+        }
+
+        if(settings.title_ff){
+            titleFontFamily = settings.title_ff
+        }
+
+        if(settings.title_style){
+            titleStyle = settings.title_style
+        }
+
+        if (settings.circle_main_color){
+            circleMainColor = settings.circle_main_color
+        }
+
+        if(settings.circle_secondary_color){
+            circleSecColor = settings.circle_secondary_color
+        }
+
+        if(settings.circle_speed){
+            if(Number.isInteger(settings.circle_speed)){
+                circleSpeed = settings.circle_speed / 1000
+            }
+        }
+
+        if(settings.circle_animation_type){
+            circleAnimationType = settings.circle_animation_type
+        }
+
+        if (settings.background_color){
+            backgroundColor = settings.background_color
+        }
+
+        if(settings.time_to_hide){
+            if(Number.isInteger(settings.time_to_hide)){
+                timeToHide = settings.time_to_hide / 1000
+            }
+        }
+
+        let preloaderHtml = `
+            <div class="preloader" id="preloader" style="background-color: ${backgroundColor}; transition: all ${timeToHide}s ease;">
+                <div class="loader">
+                    <div class="loader__animation" style="border-color: ${circleMainColor} ;border-top-color: ${circleSecColor}; animation: loader__animation ${circleSpeed}s ${circleAnimationType} infinite;">
+                        
+                    </div>
+                </div>
+                <div class="loader__title" style="color: ${titleColor}; font-size: ${titleSize}; font-family: ${titleFontFamily}; font-style:${titleStyle};">
+                    ${title}
+                </div>
+            </div>
+        `
+        document.body.insertAdjacentHTML('beforebegin', preloaderHtml)
+
+        document.body.onload = () => {
+            document.querySelector("#preloader").classList.add("preloader__done")
+        }
+
+    },
+
     each: function (func) {
         if (_select.length === undefined) {
             func(this, 0)
@@ -363,20 +445,14 @@ function fs(selector) {
 
     if (selector) {
         fs.sel(selector)
-        return fsObj
+        return __fastJsMethods
     } else {
-        return fsObj
+        return __fastJsMethods
     }
 }
 
 fs.__proto__ = __fastJsMethods
 
-
-
-
-let list = fs.List()
-
-fs.log(list.getArray)
 
 
 
