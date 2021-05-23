@@ -1,3 +1,110 @@
+class classMethods{
+    constructor(select) {
+        this._select = select
+    }
+
+    click (func) {
+        this._select.addEventListener('click', func);
+        return this;
+    }
+
+    removeClick(func){
+        this._select.removeEventListener('click', func);
+        return this;
+    }
+
+    text (content) {
+        this._select.textContent = content;
+        return this;
+    }
+
+    addClass(classes = []) {
+        for (let i = 0; i < classes.length; i++) {
+            this._select.classList.add(classes[i]);
+        }
+        return this;
+    }
+
+    removeClass(classes = []) {
+        for (let i = 0; i < classes.length; i++) {
+            this._select.classList.remove(classes[i]);
+        }
+        return this;
+    }
+
+    toggleClass(classes) {
+        for (let i = 0; i < classes.length; i++) {
+            this._select.classList.toggle(classes[i]);
+        }
+        return this;
+    }
+
+    removeEvent(event, func) {
+        if (event === 'cl') {
+            this._select.removeEventListener('click', func);
+        }
+    }
+
+
+    hide () {
+        this._select.style.display = 'none';
+        return this;
+    }
+
+    show () {
+        this._select.style.display = '';
+        return this;
+    }
+
+    insertHTML (place = 'beforeend', html) {
+        this._select.insertAdjacentHTML(place, html);
+        return this;
+    }
+
+    each(func) {
+        if (this._select.length === undefined) {
+            func(this, 0)
+        } else {
+            let oldSelect = this._select;
+            this._select.forEach((el, id) => {
+                this._select = el
+                func(this, id)
+            })
+            this._select = oldSelect;
+        }
+    }
+
+    doubleClick(handler, time = 500){
+        this._select.addEventListener("click", firstClick.bind(this));
+        function firstClick(handler){
+            this._select.removeEventListener("click", firstClick);
+            this._select.addEventListener("click", secondClick);
+            setTimeout(()=>{
+                this._select.removeEventListener("click", secondClick);
+                this._select.addEventListener("click", firstClick)
+            }, time)
+        }
+        function secondClick(e){
+            handler(e);
+        }
+    }
+
+    set html(html) {
+        this._select.innerHTML = html
+        return this;
+    }
+
+    set id(id){
+        this._select.id = id;
+        return this;
+    }
+
+    vanilla(){
+        return this._select
+    }
+
+}
+
 let __fastJsMethods = {
 
     Matrix(x, y) {
@@ -161,7 +268,6 @@ let __fastJsMethods = {
         }
         return new List()
     },
-
     preloader: function(settings = {}){
         let title = '',
             titleColor = 'black',
@@ -243,18 +349,6 @@ let __fastJsMethods = {
         }
 
     },
-
-    each: function (func) {
-        if (_select.length === undefined) {
-            func(this, 0)
-        } else {
-            _select.forEach((el, id) => {
-                _select = el
-                func(this, id)
-            })
-        }
-    },
-
     sel: function (selector) {
         let find = document.querySelectorAll(selector);
         if (find.length === 0) {
@@ -269,19 +363,29 @@ let __fastJsMethods = {
         return this
     },
 
+    initial: function (selector) {
+        let result;
+        if(selector instanceof Node){
+            result = selector;
+        } else {
+            let find = document.querySelectorAll(selector);
+            if (find.length === 0) {
+                throw new Error(`Не удалось найти элемент ${selector}. Возможно, неверно задан селектор`)
+            }
+            if (find.length > 1) {
+                result = find;
+            } else {
+                document.querySelector(selector);
+                result = find[0]
+            }
+        }
+
+        return result;
+    },
+
     id: function (selector) {
         document.getElementById(selector);
         _select = document.getElementById(selector);
-        return this;
-    },
-
-    click: function (func) {
-        _select.addEventListener('click', func);
-        return this;
-    },
-
-    text: function (content) {
-        _select.textContent = content;
         return this;
     },
 
@@ -295,47 +399,6 @@ let __fastJsMethods = {
         }
     },
 
-    addClass: function (classes = []) {
-        for (let i = 0; i < classes.length; i++) {
-            _select.classList.add(classes[i]);
-        }
-        return this;
-    },
-
-    removeClass: function (classes = []) {
-        for (let i = 0; i < classes.length; i++) {
-            _select.classList.remove(classes[i]);
-        }
-        return this;
-    },
-
-    removeEvent: function (event, func) {
-        if (event === 'cl') {
-            _select.removeEventListener('click', func);
-        }
-    },
-
-    toggleClass: function (classes) {
-        for (let i = 0; i < classes.length; i++) {
-            _select.classList.toggle(classes[i]);
-        }
-        return this;
-    },
-
-    hide: function () {
-        _select.style.display = 'none';
-        return this;
-    },
-
-    show: function () {
-        _select.style.display = '';
-        return this;
-    },
-
-    insertHTML: function (html, place = 'beforeend') {
-        _select.insertAdjacentHTML(place, html);
-        return this;
-    },
     sort: function (arr, type) {
         if (arr.length > 1) {
             let pivot = arr[0]
@@ -429,32 +492,38 @@ let __fastJsMethods = {
         return false
     },
 
-    get vanilla() {
-        return _select
-    },
-
-    set html(html) {
-        _select.innerHTML = html
-        return this;
-    },
-}
-
-function fs(selector) {
-
-    _select = ''
-
-    if (selector) {
-        fs.sel(selector)
-        return __fastJsMethods
-    } else {
-        return __fastJsMethods
+    //перебор массивов и объектов. Возможно прекращение перебора,если callback возвращает false;
+    each(target, callback){
+        if(Array.isArray(target)){
+            let flag;
+            for(let i = 0; i < target.length && flag !== false; i++){
+                let el = target[i];
+                flag = callback(el, i);
+            }
+        } else if(target instanceof Object){
+            let keys = Object.keys(target);
+            let flag = undefined;
+            for(let i = 0; i < keys.length && flag !== false; i++){
+                let el = target[keys[i]];
+                flag = callback(el, keys[i], i);
+            }
+        } else {
+            throw new Error("Неподдерживаемый тип аргумента");
+        }
     }
+
 }
+
 
 fs.__proto__ = __fastJsMethods
 
-
-
+function fs(selector) {
+    if(selector[0] === "!"){
+        return fs.initial(selector.slice(1, selector.length))
+    } else {
+        return new classMethods(fs.initial(selector))
+    }
+}
 
 
 
